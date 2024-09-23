@@ -1135,6 +1135,13 @@ public function second_pay_slip() {
        $data_timesheet['start'] =  $date_split[0];
        $data_timesheet['end'] =  $date_split[1];
        
+       if ($this->input->post('payment_method') == 'Cash') {
+            $data_timesheet['cheque_date'] =(!empty($this->input->post('cash_date',TRUE))?$this->input->post('cash_date',TRUE):'');
+        } 
+        else if ($this->input->post('payment_method') == 'Cheque') {
+            $data_timesheet['cheque_date'] =(!empty($this->input->post('cheque_date',TRUE))?$this->input->post('cheque_date',TRUE):'');
+        }
+       
  // Assuming $data_timesheet['start'] is set and contains a date in the format of 'd/m/Y'
  $start_date = $data_timesheet['start'];
 $month = intval(substr($start_date, 0, 2));
@@ -1166,7 +1173,7 @@ $data_timesheet['quarter'] = $quarter;
        $data_timesheet['admin_name'] = (!empty($this->input->post('administrator_person',TRUE))?$this->input->post('administrator_person',TRUE):'');
        $data_timesheet['payment_method'] =(!empty($this->input->post('payment_method',TRUE))?$this->input->post('payment_method',TRUE):'');
        $data_timesheet['cheque_no'] =(!empty($this->input->post('cheque_no',TRUE))?$this->input->post('cheque_no',TRUE):'');
-       $data_timesheet['cheque_date'] =(!empty($this->input->post('cheque_date',TRUE))?$this->input->post('cheque_date',TRUE):'');
+       // $data_timesheet['cheque_date'] =(!empty($this->input->post('cheque_date',TRUE))?$this->input->post('cheque_date',TRUE):'');
          $data_timesheet['bank_name'] =(!empty($this->input->post('bank_name',TRUE))?$this->input->post('bank_name',TRUE):'');
            $data_timesheet['payment_ref_no'] =(!empty($this->input->post('payment_refno',TRUE))?$this->input->post('payment_refno',TRUE):'');
      $timesheet_id  = $this->input->post('tsheet_id');
