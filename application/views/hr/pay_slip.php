@@ -151,7 +151,7 @@ $fs=strtoupper($infoemployee[0]['first_name']);
 
 ?>
 
-      <div class="r"><p style="padding-left:430px;margin-top: 50px;"><?php echo date("m-d-Y") ?></p></div>
+      <div class="r"><p style="padding-left:430px;margin-top: 50px;"><?php echo $infotime[0]['cheque_date']; ?></p></div>
 
                        
                        <div class="r" style="height:23px;">

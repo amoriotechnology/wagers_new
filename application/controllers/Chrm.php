@@ -26,6 +26,12 @@ class Chrm extends CI_Controller {
     $content = $CI->parser->parse("hr/uc_2aform.php", $data, true);
     $this->template->full_admin_html_view($content);
 }
+public function OverallSummary(){
+  $data['setting_detail']         = $this->Web_settings->retrieve_setting_editdata();
+ $data['emp_name']=$this->db->select('*')->from('employee_history')->where('create_by', $this->session->userdata('user_id'))->get()->result_array();
+  $content                   = $this->parser->parse('hr/reports/overall_state_summary', $data, true);
+  $this->template->full_admin_html_view($content);
+}
 public function wr30_form( ){
   $CI = &get_instance();
     $this->load->model("Hrm_model");
@@ -133,16 +139,13 @@ public function state_tax_search_summary() {
     $CI = get_instance();
     $CI->load->model('Web_settings');
     $this->load->model('Hrm_model');
-    
     $emp_name = $this->input->post('employee_name');
     $tax_choice = $this->input->post('tax_choice');
     $taxType = $this->input->post('taxType');
     $selectState = $this->input->post('selectState');
     $date = $this->input->post('daterangepicker-field');
-    
     $state_summary_employer = $this->Hrm_model->state_summary_employer($emp_name, $tax_choice, $selectState, $date, $taxType);
     $state_summary_employee = $this->Hrm_model->state_summary_employee($emp_name, $tax_choice, $selectState, $date, $taxType);
-
     // Initialize arrays to store contributions
     $employer_contributions = [
         'state_tax' => [],
@@ -152,7 +155,6 @@ public function state_tax_search_summary() {
         'state_tax' => [],
         'living_state_tax' => []
     ];
-
     // Organize employer contributions
     foreach ($state_summary_employer as $row) {
         $employee_name = $row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name'];
@@ -160,8 +162,6 @@ public function state_tax_search_summary() {
         $tax = $row['tax'];
         $code = $row['code'];
         $total_amount = $row['total_amount'];
-     
-
         // Organize by tax type
         $employer_contributions[$tax_type][] = [
             'employee_name' => $employee_name,
@@ -171,7 +171,6 @@ public function state_tax_search_summary() {
             'total_amount' => $total_amount
         ];
     }
-
     // Organize employee contributions
     foreach ($state_summary_employee as $row) {
         $employee_name = $row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name'];
@@ -179,7 +178,6 @@ public function state_tax_search_summary() {
         $tax = $row['tax'];
          $code = $row['code'];
         $total_amount = $row['total_amount'];
-
         // Organize by tax type
         $employee_contributions[$tax_type][] = [
             'employee_name' => $employee_name,
@@ -188,9 +186,7 @@ public function state_tax_search_summary() {
                'taxType' => $tax_type,
             'total_amount' => $total_amount
         ];
-        
     }
-
     // Sum similar taxes for each employee
 foreach ($employer_contributions as $tax_type => &$contributions) {
     foreach ($contributions as &$contribution) {
@@ -198,70 +194,43 @@ foreach ($employer_contributions as $tax_type => &$contributions) {
         $tax = $contribution['tax']; // Added tax type condition
         $sum = 0;
         foreach ($state_summary_employer as $row) {
-
-
           if ($row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name'] === $employee_name && $row['tax_type'] === $tax_type && $row['tax'] === $tax) {
                             $final_amount = '';
-                          
-if (trim($row['tax'])=='Income tax'   &&  $row['weekly'] > 0) {
-    $final_amount = $row['weekly'];
-} elseif (trim($row['tax'])=='Income tax'   && $row['biweekly'] > 0) {
-    $final_amount = $row['biweekly'];
-} elseif (trim($row['tax'])=='Income tax'   && $row['monthly'] > 0) {
-    $final_amount = $row['monthly'];
-} else {
-    $final_amount = $row['total_amount'];
-}
-            
+ 
+$final_amount = $row['total_amount'];       
             $sum +=   $final_amount;
             }
         }
         $contribution['total_amount'] = $sum;
     }
 }
-
 // Sum total amounts for employee contributions
 foreach ($employee_contributions as $tax_type => &$contributions) {
     foreach ($contributions as &$contribution) {
         $employee_name = $contribution['employee_name'];
         $tax = $contribution['tax']; // Added tax type condition
         $sum = 0;
-
         foreach ($state_summary_employee as $row) {
-
             if ($row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name'] === $employee_name && $row['tax_type'] === $tax_type && $row['tax'] === $tax) {
                                        $final_amount = '';
-                          
-if (trim($row['tax'])=='Income tax'   &&  $row['weekly'] > 0) {
-    $final_amount = $row['weekly'];
-} elseif (trim($row['tax'])=='Income tax'   && $row['biweekly'] > 0) {
-    $final_amount = $row['biweekly'];
-} elseif (trim($row['tax'])=='Income tax'   && $row['monthly'] > 0) {
-    $final_amount = $row['monthly'];
-} else {
-    $final_amount = $row['total_amount'];
-}
-              
+ 
+$final_amount = $row['total_amount'];  
               $sum += $final_amount;
             }
         }
         $contribution['total_amount'] = $sum;
     }
 }
-
     // Construct the response array
     $responseData = [
         'employer_contribution' => $employee_contributions,
         'employee_contribution' =>$employer_contributions 
     ];
-
     // Encode the response array to JSON
     $jsonData = json_encode($responseData, JSON_PRETTY_PRINT);
-
     // Output the JSON data
     echo $jsonData;
 }
-
 
 public function state_tax_search() {
     $CI = &get_instance();
@@ -271,16 +240,9 @@ public function state_tax_search() {
   $tax_name = trim(urldecode($this->input->post('url')));
     $date = $this->input->post('daterangepicker-field');
 $employee_name = $this->input->post('employee_name');
-    // Fetch employee and employer contributions separately
     $employee_contributions = $this->fetch_contributions($employee_name,$tax_name, $date,false);
     $employer_contributions = $this->fetch_contributions($employee_name,$tax_name, $date,true);
-// print_r($employee_contributions);
-// echo "<br>";echo "<br>";echo "<br>";echo "<br>";echo "<br>";
-// print_r($employer_contributions);
-// echo "<br>";echo "<br>";echo "<br>";echo "<br>";echo "<br>";
-    // Merge employee and employer contributions
     $merged_array = $this->merge_contributions($employee_contributions, $employer_contributions);
-//print_r($merged_array);
     header('Content-Type: application/json');
     
     echo json_encode($merged_array);
@@ -871,7 +833,7 @@ public function social_tax_report_search(){
   print_r($mergedArray);
 echo json_encode($mergedArray);
 }
- public function social_taxsearch(){
+  public function social_taxsearch(){
       $CI = & get_instance();
       $CI->load->model('Web_settings');
       $this->load->model('Hrm_model');

@@ -55,7 +55,6 @@ public function state_tax_list_employer()
 public function state_summary_employee($emp_name = null, $tax_choice = null, $selectState = null, $date = null, $taxType = null)
 {
     $user_id = $this->session->userdata('user_id');
-    
     $this->db->select('DISTINCT a.timesheet_id, d.code, c.id, c.first_name, c.middle_name, c.last_name, d.tax_type, d.tax, (d.amount) as total_amount', false);
     $this->db->from('timesheet_info a');
     $this->db->join('info_payslip b', 'b.templ_name = a.templ_name');
@@ -66,13 +65,10 @@ public function state_summary_employee($emp_name = null, $tax_choice = null, $se
         $dates = explode(' - ', $date);
         $this->db->where("((a.start BETWEEN '$dates[0]' AND '$dates[1]') OR (a.end BETWEEN '$dates[0]' AND '$dates[1]' AND a.end <= '$dates[1]'))");
     }
-
     if ($taxType !== '') {
         $trimmed_taxType = trim($taxType);
-        // Escape special characters and apply the LIKE condition
         $this->db->like("TRIM(d.tax)", $trimmed_taxType, 'none');
     }
-
     if ($tax_choice == 'All') {
         $this->db->where("(TRIM(d.tax_type) = 'state_tax' OR TRIM(d.tax_type) = 'living_state_tax')");
     } elseif ($tax_choice == 'state_tax') {
@@ -80,26 +76,19 @@ public function state_summary_employee($emp_name = null, $tax_choice = null, $se
     } elseif ($tax_choice == 'living_state_tax') {
         $this->db->where("TRIM(d.tax_type)", 'living_state_tax');
     }
-
     if ($selectState !== '') {
         $trimmed_selectState = trim($selectState);
         $this->db->where("TRIM(d.code)", $trimmed_selectState);
     }
-
       if ($emp_name !== 'All') {
         $trimmed_emp_name = trim($emp_name);
         $this->db->like("CONCAT(TRIM(c.first_name), ' ', TRIM(c.middle_name), ' ', TRIM(c.last_name))", $trimmed_emp_name, 'both', false);
     }
-
     $this->db->where('a.create_by', $user_id);
     $this->db->group_by('a.timesheet_id, d.code, c.id, c.first_name, c.middle_name, c.last_name, d.tax_type, d.tax,d.amount'); // Group by to aggregate the sum
-
     $query = $this->db->get();
     $resultRows = $query->result_array();
-  //echo $this->db->last_query();
-  //print_r($resultRows);die();
     return $resultRows;
-    
 }
 public function get_employee_sal($id , $tax){
         $user_id = $this->session->userdata('user_id');
@@ -463,19 +452,15 @@ public function state_summary_employer($emp_name = null, $tax_choice = null, $se
     $this->db->join('info_payslip b', 'b.templ_name = a.templ_name');
     $this->db->join('employee_history c', 'c.id = b.templ_name');
     $this->db->join('tax_history d', 'd.time_sheet_id = a.timesheet_id', 'left');
-  
    $this->db->where("TRIM(d.tax_type) != 'local_tax'");
     if ($date) {
         $dates = explode(' - ', $date);
         $this->db->where("(a.start BETWEEN '$dates[0]' AND '$dates[1]' OR a.end BETWEEN '$dates[0]' AND '$dates[1]' AND a.end <= '$dates[1]')");
     }
-  
     if ($taxType !== '') {
         $trimmed_taxType = trim($taxType);
-        // Escape special characters and apply the LIKE condition
         $this->db->like("TRIM(d.tax)", $trimmed_taxType, 'none');
     }
-
     if ($tax_choice == 'All') {
         $this->db->where("(TRIM(d.tax_type) = 'state_tax' OR TRIM(d.tax_type) = 'living_state_tax')");
     } elseif (trim($tax_choice) == 'state_tax') {
@@ -483,7 +468,6 @@ public function state_summary_employer($emp_name = null, $tax_choice = null, $se
     } elseif (trim($tax_choice) == 'living_state_tax') {
         $this->db->where("TRIM(d.tax_type)", 'living_state_tax');
     }
-
     if ($selectState !== '') {
         $trimmed_selectState = trim($selectState);
         $this->db->where("TRIM(d.code)", $trimmed_selectState);
@@ -492,16 +476,10 @@ public function state_summary_employer($emp_name = null, $tax_choice = null, $se
         $trimmed_emp_name = trim($emp_name);
         $this->db->like("CONCAT(TRIM(c.first_name), ' ', TRIM(c.middle_name), ' ', TRIM(c.last_name))", $trimmed_emp_name, 'both', false);
     }
-    
-
     $this->db->where('a.create_by', $user_id);
     $this->db->group_by('a.timesheet_id,d.code, c.id, c.first_name, c.middle_name, c.last_name, d.tax_type,d.weekly,d.biweekly,d.monthly, d.tax,d.amount');
-
     $query = $this->db->get();
-    
-  // echo $this->db->last_query();
     $resultRows = $query->result_array();
-     // print_r($resultRows);die();
     return $resultRows;
 }
 
@@ -1134,7 +1112,6 @@ public function so_tax_report_employee($employee_name = null, $date = null, $sta
     $this->db->where('ti.create_by', $user_id);
     $this->db->where('ti.uneditable', '1');
     $query = $this->db->get();
-    
     if ($query->num_rows() > 0) {
         return $query->result_array();
     }
@@ -1178,12 +1155,13 @@ public function so_tax_report_employer($emp_name = null, $date = null, $status =
     $this->db->group_by('c.first_name, c.middle_name, c.last_name, c.employee_tax,ti.start,ti.end');
     // Execute query
     $query = $this->db->get();
-   
+    //echo $this->db->last_query(); //die();
     if ($query->num_rows() > 0) {
         return $query->result_array();
     }
     return false;
 }
+
 
 
 
