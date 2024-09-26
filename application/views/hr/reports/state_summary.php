@@ -6,7 +6,6 @@
 <script type="text/javascript" src="<?php echo base_url()?>assets/js/html2canvas.js"></script>
 <script type="text/javascript" src="<?php echo base_url()?>assets/js/jspdf.plugin.autotable"></script>
 <script type="text/javascript" src="<?php echo base_url()?>assets/js/jspdf.umd.js"></script>
-<script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
 <script type="text/javascript" src="<?php echo base_url()?>my-assets/js/invoice_tableManager.js"></script>
 <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap/3/css/bootstrap.css" />
 <script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
@@ -35,16 +34,14 @@
 <link rel="stylesheet" type="text/css" href="<?php echo base_url()?>my-assets/css/css.css" />
 <link rel="stylesheet" type="text/css" href="<?php echo base_url()?>my-assets/css/css.css" />
 <input type="hidden" name="<?php echo $this->security->get_csrf_token_name();?>" value="<?php echo $this->security->get_csrf_hash();?>">
- <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css" />
 <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap/3/css/bootstrap.css" />
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js" integrity="sha512-CryKbMe7sjSCDPl18jtJI5DR5jtkUWxPXWaLCst6QjH8wxDexfRJic2WRmRXmstr2Y8SxDDWuBO6CQC6IE4KTA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
-<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 <link href="<?php echo base_url() ?>assets/css/daterangepicker.css" rel="stylesheet">
 <link href="<?php echo base_url() ?>assets/css/style.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css">
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+<link rel="stylesheet" href="<?php echo base_url() ?>assets/css/calanderstyle.css">
 
 
 <style>
@@ -223,7 +220,7 @@
 
                            <td class="search_dropdown" style="color: black; position: relative; top: 4px;">
                               <div id="datepicker-container">
-                                 <input type="text" class="form-control daterangepicker-field getdate_reults" id="daterangepicker-field" name="daterangepicker-field" style="margin-top: 15px;padding: 5px; width: 200px; border-radius: 8px; height: 35px;" />
+                                 <input type="text" class="form-control daterangepicker_field getdate_reults" id="daterangepicker-field" name="daterangepicker-field" style="margin-top: 15px;padding: 5px; width: 200px; border-radius: 8px; height: 35px;" />
                               </div>
                            </td>
                            <input type="hidden" class="getcurrency" value="<?php echo $currency; ?>">
@@ -374,6 +371,9 @@
 </div>
 <!-- Manage Invoice End -->
 <script type="text/javascript" src="<?php echo base_url()?>my-assets/js/profarma.js"></script>
+<script src='<?php echo base_url();?>assets/js/moment.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-debug.js'></script>
+<script  src="<?php echo base_url() ?>assets/js/scripts.js"></script>
 <script>
 $(function() {
   // Initialize the daterangepicker with desired date format
@@ -473,14 +473,22 @@ $(document).ready(function () {
 
 function populateTable(response) {
     var ProfarmaInvList = $("#ProfarmaInvList");
-    ProfarmaInvList.find("thead, tbody, tfoot").empty();  // Clear table
-        var hasEmployerContributions = Object.keys(response.employer_contribution).length > 0;
+
+    // Destroy the DataTable if it exists
+    if ($.fn.DataTable.isDataTable('#ProfarmaInvList')) {
+        ProfarmaInvList.DataTable().clear().destroy();
+    }
+
+    ProfarmaInvList.find("thead, tbody, tfoot").empty(); // Clear table
+    var hasEmployerContributions = Object.keys(response.employer_contribution).length > 0;
     var hasEmployeeContributions = Object.keys(response.employee_contribution).length > 0;
 
     if (!hasEmployerContributions && !hasEmployeeContributions) {
         ProfarmaInvList.find("tbody").append("<tr><td colspan='100%' style='text-align:center;'>No data found</td></tr>");
-        return;  // Stop execution here as there's no data
+        ProfarmaInvList.DataTable(); // Initialize DataTable again
+        return; // Stop execution here as there's no data
     }
+
     var allTaxTypes = {};
     var taxTypeCounts = {};
 
@@ -488,8 +496,8 @@ function populateTable(response) {
     Object.keys(response.employer_contribution).forEach(function (taxType) {
         response.employer_contribution[taxType].forEach(function (item) {
             var taxKey = item.tax.trim() + "-" + (item.code ? item.code.trim() : "");
-            allTaxTypes[taxKey] = item.taxType || '';  // Store tax type
-            taxTypeCounts[taxKey] = (taxTypeCounts[taxKey] || 0) + 1;  // Count occurrences
+            allTaxTypes[taxKey] = item.taxType || ''; // Store tax type
+            taxTypeCounts[taxKey] = (taxTypeCounts[taxKey] || 0) + 1; // Count occurrences
         });
     });
 
@@ -509,124 +517,129 @@ function populateTable(response) {
         }
         taxTypeMap[taxType].push(taxKey);
     });
-  if (Object.keys(taxTypeMap).length > 0) {
-    // Create table headers dynamically
-    var taxHeaders = "<tr class='btnclr'><th rowspan='2' style='border-bottom:none;text-align:center'>Employee Name</th>";
 
-    Object.keys(taxTypeMap).forEach(function (taxType) {
-        var taxes = taxTypeMap[taxType];
-        var displayTaxType = (taxType === "living_state_tax") ? "LIVING STATE TAX" : "WORKING STATE TAX";
-        taxHeaders += "<th colspan='" + (2 * taxes.length) + "' style='text-align:center'>" + displayTaxType + "</th>";
-    });
+    if (Object.keys(taxTypeMap).length > 0) {
+        // Create table headers dynamically
+        var taxHeaders = "<tr class='btnclr'><th rowspan='2' style='border-bottom:none;text-align:center'>Employee Name</th>";
 
-    taxHeaders += "</tr><tr class='btnclr'>";
-
-    // Tax names and codes
-    Object.keys(taxTypeMap).forEach(function (taxType) {
-        var taxes = taxTypeMap[taxType];
-        taxes.forEach(function (taxKey) {
-            var taxName = taxKey.split('-')[0];
-            var code = taxKey.split('-')[1];
-            taxHeaders += "<th colspan='2' style='text-align:center'>" + taxName + "-" + code + "</th>";
+        Object.keys(taxTypeMap).forEach(function (taxType) {
+            var taxes = taxTypeMap[taxType];
+            var displayTaxType = (taxType === "living_state_tax") ? "LIVING STATE TAX" : "WORKING STATE TAX";
+            taxHeaders += "<th colspan='" + (2 * taxes.length) + "' style='text-align:center'>" + displayTaxType + "</th>";
         });
-    });
 
-    taxHeaders += "</tr><tr class='btnclr'><th></th>";
+        taxHeaders += "</tr><tr class='btnclr'>";
 
-    Object.keys(taxTypeMap).forEach(function (taxType) {
-        var taxes = taxTypeMap[taxType];
-        taxes.forEach(function () {
-            taxHeaders += "<th style='text-align:center'>Employee Contribution</th><th style='text-align:center'>Employer Contribution</th>";
+        // Tax names and codes
+        Object.keys(taxTypeMap).forEach(function (taxType) {
+            var taxes = taxTypeMap[taxType];
+            taxes.forEach(function (taxKey) {
+                var taxName = taxKey.split('-')[0];
+                var code = taxKey.split('-')[1];
+                taxHeaders += "<th colspan='2' style='text-align:center'>" + taxName + "-" + code + "</th>";
+            });
         });
-    });
 
-    taxHeaders += "</tr>";
-    ProfarmaInvList.find("thead").append(taxHeaders);
+        taxHeaders += "</tr><tr class='btnclr'><th></th>";
 
-    // Consolidate contributions by employee and tax
-    var consolidatedContributions = {};
-    Object.keys(response.employer_contribution).forEach(function (taxType) {
-        response.employer_contribution[taxType].forEach(function (item) {
-            var employeeName = item.employee_name;
-            var taxKey = item.tax.trim() + "-" + (item.code ? item.code.trim() : "");
-            if (!consolidatedContributions[employeeName]) {
-                consolidatedContributions[employeeName] = {};
-            }
-            if (!consolidatedContributions[employeeName][taxKey]) {
-                consolidatedContributions[employeeName][taxKey] = { employee: "0.000", employer: "0.000" };
-            }
-            consolidatedContributions[employeeName][taxKey].employer = parseFloat(item.total_amount).toFixed(3) || "0.000";
+        Object.keys(taxTypeMap).forEach(function (taxType) {
+            var taxes = taxTypeMap[taxType];
+            taxes.forEach(function () {
+                taxHeaders += "<th style='text-align:center'>Employee Contribution</th><th style='text-align:center'>Employer Contribution</th>";
+            });
         });
-    });
 
-    Object.keys(response.employee_contribution).forEach(function (taxType) {
-        response.employee_contribution[taxType].forEach(function (item) {
-            var employeeName = item.employee_name;
-            var taxKey = item.tax.trim() + "-" + (item.code ? item.code.trim() : "");
-            if (!consolidatedContributions[employeeName]) {
-                consolidatedContributions[employeeName] = {};
-            }
-            if (!consolidatedContributions[employeeName][taxKey]) {
-                consolidatedContributions[employeeName][taxKey] = { employee: "0.000", employer: "0.000" };
-            }
-            consolidatedContributions[employeeName][taxKey].employee = parseFloat(item.total_amount).toFixed(3) || "0.000";
+        taxHeaders += "</tr>";
+        ProfarmaInvList.find("thead").append(taxHeaders);
+
+        // Consolidate contributions by employee and tax
+        var consolidatedContributions = {};
+        Object.keys(response.employer_contribution).forEach(function (taxType) {
+            response.employer_contribution[taxType].forEach(function (item) {
+                var employeeName = item.employee_name;
+                var taxKey = item.tax.trim() + "-" + (item.code ? item.code.trim() : "");
+                if (!consolidatedContributions[employeeName]) {
+                    consolidatedContributions[employeeName] = {};
+                }
+                if (!consolidatedContributions[employeeName][taxKey]) {
+                    consolidatedContributions[employeeName][taxKey] = { employee: "0.000", employer: "0.000" };
+                }
+                consolidatedContributions[employeeName][taxKey].employer = parseFloat(item.total_amount).toFixed(3) || "0.000";
+            });
         });
-    });
 
-    // Populate rows for each employee
-    var tbody = ProfarmaInvList.find("tbody");
-    Object.keys(consolidatedContributions).forEach(function (employeeName) {
-        var contributions = consolidatedContributions[employeeName];
-        var row = $("<tr>");
-        row.append("<td>" + employeeName + "</td>");
+        Object.keys(response.employee_contribution).forEach(function (taxType) {
+            response.employee_contribution[taxType].forEach(function (item) {
+                var employeeName = item.employee_name;
+                var taxKey = item.tax.trim() + "-" + (item.code ? item.code.trim() : "");
+                if (!consolidatedContributions[employeeName]) {
+                    consolidatedContributions[employeeName] = {};
+                }
+                if (!consolidatedContributions[employeeName][taxKey]) {
+                    consolidatedContributions[employeeName][taxKey] = { employee: "0.000", employer: "0.000" };
+                }
+                consolidatedContributions[employeeName][taxKey].employee = parseFloat(item.total_amount).toFixed(3) || "0.000";
+            });
+        });
+
+        // Populate rows for each employee
+        var tbody = ProfarmaInvList.find("tbody");
+        Object.keys(consolidatedContributions).forEach(function (employeeName) {
+            var contributions = consolidatedContributions[employeeName];
+            var row = $("<tr>");
+            row.append("<td>" + employeeName + "</td>");
+
+            Object.keys(taxTypeMap).forEach(function (taxType) {
+                var taxes = taxTypeMap[taxType];
+                taxes.forEach(function (taxKey) {
+                    var taxData = contributions[taxKey] || { employee: "0.000", employer: "0.000" };
+                    row.append("<td>$" + taxData.employee + "</td>");
+                    row.append("<td>$" + taxData.employer + "</td>");
+                });
+            });
+
+            tbody.append(row);
+        });
+
+        // Populate footer with total contributions
+        var tfoot = ProfarmaInvList.find("tfoot");
+        var footerRow = $("<tr class='btnclr'>").append("<td>Total</td>");
 
         Object.keys(taxTypeMap).forEach(function (taxType) {
             var taxes = taxTypeMap[taxType];
             taxes.forEach(function (taxKey) {
-                var taxData = contributions[taxKey] || { employee: "0.000", employer: "0.000" };
-                row.append("<td>$" + taxData.employee + "</td>");
-                row.append("<td>$" + taxData.employer + "</td>");
+                var totalEmployeeContribution = 0;
+                var totalEmployerContribution = 0;
+                Object.keys(consolidatedContributions).forEach(function (employeeName) {
+                    var contribution = consolidatedContributions[employeeName][taxKey];
+                    if (contribution) {
+                        totalEmployeeContribution += parseFloat(contribution.employee);
+                        totalEmployerContribution += parseFloat(contribution.employer);
+                    }
+                });
+                footerRow.append("<td>$" + totalEmployeeContribution.toFixed(3) + "</td>");
+                footerRow.append("<td>$" + totalEmployerContribution.toFixed(3) + "</td>");
             });
         });
 
-        tbody.append(row);
-    });
+        tfoot.append(footerRow);
+    } else {
+        var columnCount = ProfarmaInvList.find("thead th").length;
 
-    // Populate footer with total contributions
-    var tfoot = ProfarmaInvList.find("tfoot");
-    var footerRow = $("<tr class='btnclr'>").append("<td>Total</td>");
-    
-    Object.keys(taxTypeMap).forEach(function (taxType) {
-        var taxes = taxTypeMap[taxType];
-        taxes.forEach(function (taxKey) {
-            var totalEmployeeContribution = 0;
-            var totalEmployerContribution = 0;
-            Object.keys(consolidatedContributions).forEach(function (employeeName) {
-                var contribution = consolidatedContributions[employeeName][taxKey];
-                if (contribution) {
-                    totalEmployeeContribution += parseFloat(contribution.employee);
-                    totalEmployerContribution += parseFloat(contribution.employer);
-                }
-            });
-            footerRow.append("<td>$" + totalEmployeeContribution.toFixed(3) + "</td>");
-            footerRow.append("<td>$" + totalEmployerContribution.toFixed(3) + "</td>");
-        });
-    });
-  }else{
-    var columnCount = ProfarmaInvList.find("thead th").length;
+        // Append "No data found" message
+        ProfarmaInvList.find("tbody").append(
+            "<tr style='border:none;'>" +
+            "<td colspan='" + columnCount + "' style='width:2%;padding:20px;text-align:center;'>" +
+            "<p style='text-align:center; margin:0; font-weight:bold;'>No data found</p>" +
+            "</td>" +
+            "</tr>"
+        );
+    }
 
-// Append "No data found" message
-ProfarmaInvList.find("tbody").append(
-    "<tr style='border:none;'>" +
-    "<td colspan='" + columnCount + "' style='width:2%;padding:20px;text-align:center;'>" +
-    "<p style='text-align:center; margin:0; font-weight:bold;'>No data found</p>" +
-    "</td>" +
-    "</tr>"
-);
-
-  }
-    tfoot.append(footerRow);
+    // Re-initialize DataTable
+    ProfarmaInvList.DataTable();
 }
+
 
 
 // document.getElementById("btn").addEventListener("click", () => {
@@ -654,11 +667,16 @@ $("#download").click(function (event) {
  	generateExcel($("#ProfarmaInvList"));
 });
 
-    
-      </script>
+
+// $(document).ready(function() {
+//    if ($.fn.dataTable.isDataTable('#ProfarmaInvList')) {
+//       $('#ProfarmaInvList').DataTable().destroy();
+//    }
+//    $('#ProfarmaInvList').DataTable();
+// }); 
+</script>
 
    
-</script>
 <style>
 th,td{
     text-align:center;
