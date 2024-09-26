@@ -6,12 +6,13 @@
 <script type="text/javascript" src="<?php echo base_url()?>assets/js/html2canvas.js"></script>
 <script type="text/javascript" src="<?php echo base_url()?>assets/js/jspdf.plugin.autotable"></script>
 <script type="text/javascript" src="<?php echo base_url()?>assets/js/jspdf.umd.js"></script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
 <script type="text/javascript" src="<?php echo base_url()?>my-assets/js/invoice_tableManager.js"></script>
 <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap/3/css/bootstrap.css" />
 <script type="text/javascript" src="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.js"></script>
 <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css" />
 <script type="text/javascript" src="<?php echo base_url()?>my-assets/js/tableManager.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+<script type="text/javascript" src="https://unpkg.com/xlsx@0.15.1/dist/xlsx.full.min.js"></script>
 <script type="text/javascript" src="http://mrrio.github.io/jsPDF/dist/jspdf.debug.js"></script>
 <input type="hidden" name="<?php echo $this->security->get_csrf_token_name();?>" value="<?php echo $this->security->get_csrf_hash();?>">
 <script src='https://kit.fontawesome.com/a076d05399.js' crossorigin='anonymous'></script>
@@ -37,17 +38,14 @@
  <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap.daterangepicker/2/daterangepicker.css" />
 <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/bootstrap/3/css/bootstrap.css" />
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css"/>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js" integrity="sha512-CryKbMe7sjSCDPl18jtJI5DR5jtkUWxPXWaLCst6QjH8wxDexfRJic2WRmRXmstr2Y8SxDDWuBO6CQC6IE4KTA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
-<!-- <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script> -->
-<!-- <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" /> -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 <link href="<?php echo base_url() ?>assets/css/daterangepicker.css" rel="stylesheet">
 <link href="<?php echo base_url() ?>assets/css/style.css" rel="stylesheet">
 <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-
-<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css">
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
-<link rel="stylesheet" href="<?php echo base_url() ?>assets/css/calanderstyle.css">
 
 
 <style>
@@ -220,7 +218,7 @@
                                
                               </select>
                            </td>
-   <td class="search_dropdown" style="color: black;">
+                           <td class="search_dropdown" style="color: black;">
                               <input type="hidden" class="txt_csrfname" name="<?= $this->security->get_csrf_token_name(); ?>" value="<?= $this->security->get_csrf_hash(); ?>">
                               <span><?php echo 'Employee'; ?></span>
                               <select id="customer-name-filter" name="employee_name" class="form-control">
@@ -237,7 +235,7 @@
                            </td>
                            <td class="search_dropdown" style="color: black; position: relative; top: 4px;">
                               <div id="datepicker-container">
-                                 <input type="text" class="form-control daterangepicker_field getdate_reults" id="daterangepicker-field" name="daterangepicker-field" style="margin-top: 15px;padding: 5px; width: 200px; border-radius: 8px; height: 35px;" />
+                                 <input type="text" class="form-control daterangepicker-field getdate_reults" id="daterangepicker-field" name="daterangepicker-field" style="margin-top: 15px;padding: 5px; width: 200px; border-radius: 8px; height: 35px;" />
                               </div>
                            </td>
                            <input type="hidden" class="getcurrency" value="<?php echo $currency; ?>">
@@ -253,7 +251,9 @@
                <span class="fa fa-download"></span> <?php echo display('download') ?>
                </button>
                <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-               <li><a href="#" id="generateXls"> <img src="<?php echo base_url() ?>assets/images/xls.png" width="24px"> <?php echo display('XLS') ?></a></li>
+               <li><a href="#" onclick="generate()"> <img src="<?php echo base_url() ?>assets/images/pdf.png" width="24px"> <?php echo display('PDF') ?></a></li>
+               <li class="divider"></li>
+               <li><a href="#" id="download"> <img src="<?php echo base_url() ?>assets/images/xls.png" width="24px"> <?php echo display('XLS') ?></a></li>
                </ul>
                &nbsp;  &nbsp;
                &nbsp;
@@ -277,112 +277,113 @@
 <div id="tablesContainer" style='padding-left:20px;padding-right:20px;'>
  <div class="panel panel-bd lobidrag">
      <p class="federal" style='font-weight:bold;text-align:center;font-size: xx-large;'><label >FEDERAL TAX</label></p>
-      <table class="federal table table-bordered" cellspacing="0" width="100%" id="federal_summary">
-                           <thead class="sortableTable">
-                              <tr class="sortableTable__header btnclr">
-                                 <th rowspan="2" class="1 value" data-col="1" style="height: 45.0114px; text-align:center; "> <?php echo 'S.NO'?> </th>
-                                 <th rowspan="2" class="2 value" data-col="2" style="text-align:center; width: 250px;"> <?php echo 'Employee Name'?> </th>
-                                 <th rowspan="2" class="3 value" data-col="3" style="text-align:center;width: 120px; "> <?php echo 'Employee Tax'?> </th>
-                               
-                                 <th colspan="2" class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Federal Income Tax')?> </th>
-                                 <th colspan="2" class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Social Security Tax')?> </th>
-                                 <th colspan="2" class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Medicare Tax')?> </th>
-                                 <th colspan="2" class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Unemployment Tax')?> </th>
-                              
-                              </tr>
-                              <tr class="btnclr" >
-                                 <th class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Employee Contribution')?> </th>
-                                 <th class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Employer Contribution')?> </th>
-                                 <th class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Employee Contribution')?> </th>
-                                 <th class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Employer Contribution')?> </th>
-                                 <th class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Employee Contribution')?> </th>
-                                 <th class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Employer Contribution')?> </th>
-                                 <th class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Employee Contribution')?> </th>
-                                 <th class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Employer Contribution')?> </th>
-                              </tr>
-                           </thead>
-                           <tbody class="sortableTable__body" id="tab">
-                              <?php
-                                 $count=1;
-                                 if(empty($tax)){  
-                                  $i=0;
-                                    foreach($fed_tax as $f_tax){    ?> 
-                              <tr>
-                                 <td> <?php echo $count; ?> </td>
-                                 <td> <?php echo  $f_tax['first_name']." ".$f_tax['middle_name']." ".$f_tax['last_name']; ?> </td>
-                                 <td> <?php echo  $f_tax['employee_tax']; ?> </td>
-                                
-                                 <td> <?php echo  round($f_tax['f_ftax_sum'],2); ?> </td>
-                                 <td> <?php if($mergedArray[$i]['f_ftax_sum_er']){echo  round($mergedArray[$i]['f_ftax_sum_er'],2); }else{echo '0';}?> </td>
-                                 <td> <?php echo  round($f_tax['s_stax_sum'],2); ?> </td>
-                                 <td> <?php if($mergedArray[$i]['s_stax_sum_er']){echo  round($mergedArray[$i]['s_stax_sum_er'],2); }else{echo '0';}?> </td>
-                                 <td> <?php echo  round($f_tax['m_mtax_sum'],2); ?> </td>
-                                 <td> <?php if($mergedArray[$i]['m_mtax_sum_er']){echo  round($mergedArray[$i]['m_mtax_sum_er'],2); }else{echo '0';}?> </td>
-                                 <td> <?php echo  round($f_tax['u_utax_sum'],2); ?> </td>
-                                 <td> <?php if($mergedArray[$i]['u_utax_sum_er']){echo  round($mergedArray[$i]['u_utax_sum_er'],2); }else{echo '0';}?> </td>
-                               
-                              </tr>
-                              <?php $count++;$i++; }}  ?> 
-                           </tbody>
-                           <tfoot>
-                              <?php
-                                 $employeeContributionTotal_f = 0;
-                                 $employerContributionTotal_ff = 0;
-                                   $i=0;
-                                 foreach($fed_tax as $f_tax) {
-                                     $employeeContributionTotal_f += $f_tax['f_ftax_sum'];
-                                     $employerContributionTotal_ff += ($mergedArray[$i]['f_ftax_sum_er']) ? $mergedArray[$i]['f_ftax_sum_er'] : 0;
-                                $i++; }
-                                   $employeeContributionTotal_s = 0;
-                                 $employerContributionTotal_ss = 0;
-                                   $i=0;
-                                 foreach($fed_tax as $f_tax) {
-                                     $employeeContributionTotal_s += $f_tax['s_stax_sum'];
-                                     $employerContributionTotal_ss += ($mergedArray[$i]['s_stax_sum_er']) ? $mergedArray[$i]['s_stax_sum_er'] : 0;
-                                $i++; }
-                                   $employeeContributionTotal_m = 0;
-                                 $employerContributionTotal_mm = 0;
-                                   $i=0;
-                                 foreach($fed_tax as $f_tax) {
-                                     $employeeContributionTotal_m += $f_tax['m_mtax_sum'];
-                                     $employerContributionTotal_mm += ($mergedArray[$i]['m_mtax_sum_er']) ? $mergedArray[$i]['m_mtax_sum_er'] : 0;
-                                $i++; }
-                                   $employeeContributionTotal_u = 0;
-                                 $employerContributionTotal_uu = 0;
-                                   $i=0;
-                                 foreach($fed_tax as $f_tax) {
-                                     $employeeContributionTotal_u += $f_tax['u_utax_sum'];
-                                     $employerContributionTotal_uu += ($mergedArray[$i]['u_utax_sum_er']) ? $mergedArray[$i]['u_utax_sum_er'] : 0;
-                                $i++; }
-                                 ?> 
-                              <tr class="btnclr" >
-                                   <td colspan="3" style="text-align:end;" >Total :</td>
-                                 <td> <?php echo round($employeeContributionTotal_f,2); ?> </td>
-                                 <td> <?php echo round($employerContributionTotal_ff,2); ?> </td>
-                                 <td> <?php echo round($employeeContributionTotal_s,2); ?> </td>
-                                 <td> <?php echo round($employerContributionTotal_ss,2); ?> </td>
-                                 <td> <?php echo round($employeeContributionTotal_m,2); ?> </td>
-                                 <td> <?php echo round($employerContributionTotal_mm,2); ?> </td>
-                                 <td> <?php echo round($employeeContributionTotal_u,2); ?> </td>
-                                 <td> <?php echo round($employerContributionTotal_uu,2); ?> </td>
-                               
-                              </tr>
-                           </tfoot>
-                        </table>
+      <table class="federal table table-bordered display" cellspacing="0" width="100%" id="federal_summary">
+         <thead>
+            <tr class="btnclr">
+               <th rowspan="2" class="1 value" data-col="1" style="height: 45.0114px; text-align:center; "> <?php echo 'S.NO'?> </th>
+               <th rowspan="2" class="2 value" data-col="2" style="text-align:center; width: 250px;"> <?php echo 'Employee Name'?> </th>
+               <th rowspan="2" class="3 value" data-col="3" style="text-align:center;width: 120px; "> <?php echo 'Employee Tax'?> </th>
+             
+               <th colspan="2" class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Federal Income Tax')?> </th>
+               <th colspan="2" class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Social Security Tax')?> </th>
+               <th colspan="2" class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Medicare Tax')?> </th>
+               <th colspan="2" class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Unemployment Tax')?> </th>
+            
+            </tr>
+            <tr class="btnclr" >
+               <th class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Employee Contribution')?> </th>
+               <th class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Employer Contribution')?> </th>
+               <th class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Employee Contribution')?> </th>
+               <th class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Employer Contribution')?> </th>
+               <th class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Employee Contribution')?> </th>
+               <th class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Employer Contribution')?> </th>
+               <th class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Employee Contribution')?> </th>
+               <th class="4 value" data-col="4" style="text-align:center;width: 200px;"> <?php echo ('Employer Contribution')?> </th>
+            </tr>
+         </thead>
+         <tbody>
+            <?php
+               $count=1;
+               if(empty($tax)){  
+                $i=0;
+                  foreach($fed_tax as $f_tax){    ?> 
+            <tr>
+               <td>
+                  <?php echo $count; ?>
+               </td>
+               <td> <?php echo  $f_tax['first_name']." ".$f_tax['middle_name']." ".$f_tax['last_name']; ?> </td>
+               <td> <?php echo  $f_tax['employee_tax']; ?> </td>
+              
+               <td> <?php echo  round($f_tax['f_ftax_sum'],2); ?> </td>
+               <td> <?php if($mergedArray[$i]['f_ftax_sum_er']){echo  round($mergedArray[$i]['f_ftax_sum_er'],2); }else{echo '0';}?> </td>
+               <td> <?php echo  round($f_tax['s_stax_sum'],2); ?> </td>
+               <td> <?php if($mergedArray[$i]['s_stax_sum_er']){echo  round($mergedArray[$i]['s_stax_sum_er'],2); }else{echo '0';}?> </td>
+               <td> <?php echo  round($f_tax['m_mtax_sum'],2); ?> </td>
+               <td> <?php if($mergedArray[$i]['m_mtax_sum_er']){echo  round($mergedArray[$i]['m_mtax_sum_er'],2); }else{echo '0';}?> </td>
+               <td> <?php echo  round($f_tax['u_utax_sum'],2); ?> </td>
+               <td> <?php if($mergedArray[$i]['u_utax_sum_er']){echo  round($mergedArray[$i]['u_utax_sum_er'],2); }else{echo '0';}?> </td>
+             
+            </tr>
+            <?php $count++;$i++; }}  ?> 
+         </tbody>
+         <tfoot>
+            <?php
+               $employeeContributionTotal_f = 0;
+               $employerContributionTotal_ff = 0;
+                 $i=0;
+               foreach($fed_tax as $f_tax) {
+                   $employeeContributionTotal_f += $f_tax['f_ftax_sum'];
+                   $employerContributionTotal_ff += ($mergedArray[$i]['f_ftax_sum_er']) ? $mergedArray[$i]['f_ftax_sum_er'] : 0;
+              $i++; }
+                 $employeeContributionTotal_s = 0;
+               $employerContributionTotal_ss = 0;
+                 $i=0;
+               foreach($fed_tax as $f_tax) {
+                   $employeeContributionTotal_s += $f_tax['s_stax_sum'];
+                   $employerContributionTotal_ss += ($mergedArray[$i]['s_stax_sum_er']) ? $mergedArray[$i]['s_stax_sum_er'] : 0;
+              $i++; }
+                 $employeeContributionTotal_m = 0;
+               $employerContributionTotal_mm = 0;
+                 $i=0;
+               foreach($fed_tax as $f_tax) {
+                   $employeeContributionTotal_m += $f_tax['m_mtax_sum'];
+                   $employerContributionTotal_mm += ($mergedArray[$i]['m_mtax_sum_er']) ? $mergedArray[$i]['m_mtax_sum_er'] : 0;
+              $i++; }
+                 $employeeContributionTotal_u = 0;
+               $employerContributionTotal_uu = 0;
+                 $i=0;
+               foreach($fed_tax as $f_tax) {
+                   $employeeContributionTotal_u += $f_tax['u_utax_sum'];
+                   $employerContributionTotal_uu += ($mergedArray[$i]['u_utax_sum_er']) ? $mergedArray[$i]['u_utax_sum_er'] : 0;
+              $i++; }
+               ?> 
+            <tr class="btnclr" >
+                 <td colspan="3" style="text-align:end;" >Total :</td>
+               <td> <?php echo round($employeeContributionTotal_f,2); ?> </td>
+               <td> <?php echo round($employerContributionTotal_ff,2); ?> </td>
+               <td> <?php echo round($employeeContributionTotal_s,2); ?> </td>
+               <td> <?php echo round($employerContributionTotal_ss,2); ?> </td>
+               <td> <?php echo round($employeeContributionTotal_m,2); ?> </td>
+               <td> <?php echo round($employerContributionTotal_mm,2); ?> </td>
+               <td> <?php echo round($employeeContributionTotal_u,2); ?> </td>
+               <td> <?php echo round($employerContributionTotal_uu,2); ?> </td>
+             
+            </tr>
+         </tfoot>
+      </table>
   <p class="work_state" style='font-weight:bold;text-align:center;font-size: xx-large;'><label >WORKING STATE TAX </label></p>
-    <table class="work_state table table-bordered" cellspacing="0" width="100%" id="StateTaxTable">
+    <table class="work_state table table-bordered display" cellspacing="0" width="100%" id="StateTaxTable">
         <thead></thead>
         <tbody></tbody>
         <tfoot></tfoot>
     </table>
     
     <p class="living_state" style='font-weight:bold;text-align:center;font-size: xx-large;'><label style='font-weight:bold;text-align:center;'>LIVING STATE TAX </label></p>
-    <table class="living_state table table-bordered" cellspacing="0" width="100%" id="LivingStateTaxTable">
+    <table class="living_state table table-bordered display" cellspacing="0" width="100%" id="LivingStateTaxTable">
         <thead></thead>
         <tbody></tbody>
         <tfoot></tfoot>
     </table>
-
 </div>
 
 
@@ -441,9 +442,6 @@
 </div>
 <!-- Manage Invoice End -->
 <script type="text/javascript" src="<?php echo base_url()?>my-assets/js/profarma.js"></script>
-<script src='<?php echo base_url();?>assets/js/moment.min.js'></script>
-<script src='https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-debug.js'></script>
-<script  src="<?php echo base_url() ?>assets/js/scripts.js"></script>
 <script>
 $( function() {
     $('#tablesContainer').css('display','none');
@@ -510,46 +508,74 @@ removeDuplicates();
 });
 
 $(document).ready(function () {
-  
-    
     $('#fetch_tax').submit(function (event) {
         event.preventDefault();
         var formData = $(this).serialize();
-   var taxtpe=$('#taxtyp-filter').val();
-   console.log(taxtpe, 'taxtpe');
+        var taxtpe=$('#taxtyp-filter').val();
         $.ajax({
             type: "POST",
             dataType: "json",
             url: "<?php echo base_url('Chrm/state_tax_search_summary'); ?>",
             data: formData,
-       success: function (response) {
-                $('#tablesContainer').css('display','block');
+            success: function (response) {
+                $('#tablesContainer').css('display', 'block');
                 populateTable(response);
-  federal_summary();
-                if(taxtpe == 'federal'){
+                federal_summary();
+
+                if (taxtpe === 'federal') {
                     $('.federal').show();
-                          $('.work_state').hide();
-         $('.living_state').hide();
-         $('#StateTaxTable_wrapper').css('display','none');
-         $('#LivingStateTaxTable_wrapper').css('display','none');
-                    federal_summary();
-                }else if(taxtpe == 'working_state')
-                {
-                 $('.work_state').show();
-         $('.living_state').hide();
-          $('.federal').hide();
-          $('#LivingStateTaxTable_wrapper').css('display','none');
-                }
-                else if( taxtpe == 'living_state'){
-                   $('.work_state').hide();
+                    if ($.fn.DataTable.isDataTable('.federal')) {
+                        $('.federal').DataTable().clear().destroy();
+                    }
+                    $('.federal').DataTable({
+                        data: response.data,
+                    });
+                    $('.work_state').hide();
+                    $('.living_state').hide();
+                } else if (taxtpe === 'working_state') {
+                    $('.work_state').show();
+                    if ($.fn.DataTable.isDataTable('.work_state')) {
+                        $('.work_state').DataTable().clear().destroy();
+                    }
+                    $('.work_state').DataTable({
+                        data: response.data,
+                    });
+                    $('.living_state').hide();
                     $('.federal').hide();
-                $('.living_state').show();   
-                $('#StateTaxTable_wrapper').css('display','none');
-                }else{
+                } else if (taxtpe === 'living_state') {
+                    $('.living_state').show();
+                    if ($.fn.DataTable.isDataTable('.living_state')) {
+                        $('.living_state').DataTable().clear().destroy();
+                    }
+                    $('.living_state').DataTable({
+                        data: response.data,
+                    });
+                    $('.work_state').hide();
+                    $('.federal').hide();
+                } else {
                    $('.work_state').show();
-                    $('.federal').show();
-         $('.living_state').show();  
-                }
+                   $('.federal').show();
+                   $('.living_state').show();
+                   if ($.fn.DataTable.isDataTable('.work_state')) {
+                       $('.work_state').DataTable().clear().destroy();
+                   }
+                   if ($.fn.DataTable.isDataTable('.federal')) {
+                       $('.federal').DataTable().clear().destroy();
+                   }
+                   if ($.fn.DataTable.isDataTable('.living_state')) {
+                       $('.living_state').DataTable().clear().destroy();
+                   }
+                   $('.work_state').DataTable({
+                       data: response.data,
+                   });
+                   $('.federal').DataTable({
+                       data: response.data,
+                   });
+                   $('.living_state').DataTable({
+                       data: response.data,
+                   });
+               }
+
             },
             error: function (xhr, status, error) {
                 console.error("Error:", xhr.responseText);
@@ -561,7 +587,7 @@ function federal_summary(){
    
     
     var dataString = $("#fetch_tax").serialize();
-    dataString[csrfName] = csrfHash; 
+    dataString[csrfName] = csrfHash; // Add CSRF tokens
     
     $.ajax({
         type: "POST",
@@ -571,8 +597,8 @@ function federal_summary(){
         success: function(response) {
             console.log(response);
             
-            var employeeData = response.aggregated_employe; 
-            var employerData = response.aggregated_employer; 
+            var employeeData = response.aggregated_employe; // Employee data
+            var employerData = response.aggregated_employer; // Employer data
 
             // Clear table body first
             var tbody = $("#federal_summary tbody").empty();
@@ -641,19 +667,10 @@ function federal_summary(){
             totalRow += "<td>" + totalEmployerContribution['UnemploymentTax'].toFixed(2) + "</td>";
             totalRow += "</tr>";
             tfoot.append(totalRow);
-            if ($.fn.DataTable.isDataTable('#federal_summary')) {
-                $('#federal_summary').DataTable().destroy(); 
-            }
-            $('#federal_summary').DataTable({
-                paging: true,
-                searching: true,
-                ordering: true,
-                info: true,
-            });
         },
         error: function(xhr, status, error) {
             console.error("Error:", error);
-            
+            // Handle the error or display a message to the user
         }
     });
 }
@@ -813,48 +830,33 @@ function populateTable(response) {
     // Generate tables for state_tax and living_state_tax
     generateTaxTable("state_tax", response.employer_contribution.state_tax, response.employee_contribution.state_tax, stateTaxTable);
     generateTaxTable("living_state_tax", response.employer_contribution.living_state_tax, response.employee_contribution.living_state_tax, livingStateTaxTable);
-
-    stateTaxTable.DataTable();
-    livingStateTaxTable.DataTable();
 }
 
-// Generate Xlsx Format
 
-// function generateExcel(el) {
-//     var clon = el.clone();
-//     var html = clon.wrap('<div>').parent().html();
 
-//     //add more symbols if needed...
-//     while (html.indexOf('á') != -1) html = html.replace(/á/g, '&aacute;');
-//     while (html.indexOf('é') != -1) html = html.replace(/é/g, '&eacute;');
-//     while (html.indexOf('í') != -1) html = html.replace(/í/g, '&iacute;');
-//     while (html.indexOf('ó') != -1) html = html.replace(/ó/g, '&oacute;');
-//     while (html.indexOf('ú') != -1) html = html.replace(/ú/g, '&uacute;');
-//     while (html.indexOf('º') != -1) html = html.replace(/º/g, '&ordm;');
-//     html = html.replace(/<td>/g, "<td>&nbsp;");
-
-//     window.open('data:application/vnd.ms-excel,' + encodeURIComponent(html));
-// }
-// $("#download").click(function (event) {
-//  	generateExcel($("#ProfarmaInvList"));
+// document.getElementById("btn").addEventListener("click", () => {
+//   let table2excel = new Table2Excel();
+//   table2excel.export(document.querySelector("#ProfarmaInvList"));
 // });
 
-$(document).ready(function() {
-   $('#download').click(function() {
-       const wb = XLSX.utils.book_new();
 
-       function addTableToWorkbook(tableId, sheetName) {
-           const table = document.getElementById(tableId);
-           const worksheet = XLSX.utils.table_to_sheet(table);
-           XLSX.utils.book_append_sheet(wb, worksheet, sheetName);
-       }
+function generateExcel(el) {
+    var clon = el.clone();
+    var html = clon.wrap('<div>').parent().html();
 
-       addTableToWorkbook('.federal', 'Data Table 1');
-       addTableToWorkbook('.work_state', 'Data Table 2');
-       addTableToWorkbook('.living_state', 'Data Table 3');
+    //add more symbols if needed...
+    while (html.indexOf('á') != -1) html = html.replace(/á/g, '&aacute;');
+    while (html.indexOf('é') != -1) html = html.replace(/é/g, '&eacute;');
+    while (html.indexOf('í') != -1) html = html.replace(/í/g, '&iacute;');
+    while (html.indexOf('ó') != -1) html = html.replace(/ó/g, '&oacute;');
+    while (html.indexOf('ú') != -1) html = html.replace(/ú/g, '&uacute;');
+    while (html.indexOf('º') != -1) html = html.replace(/º/g, '&ordm;');
+    html = html.replace(/<td>/g, "<td>&nbsp;");
 
-       XLSX.writeFile(wb, 'data_tables.xlsx');
-   });
+    window.open('data:application/vnd.ms-excel,' + encodeURIComponent(html));
+}
+$("#download").click(function (event) {
+   generateExcel($("#ProfarmaInvList"));
 });
 
 </script>

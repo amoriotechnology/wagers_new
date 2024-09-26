@@ -1,4 +1,3 @@
-
 <?php
  error_reporting(0);
 if (!defined('BASEPATH'))
@@ -26,6 +25,7 @@ class Chrm extends CI_Controller {
     $content = $CI->parser->parse("hr/uc_2aform.php", $data, true);
     $this->template->full_admin_html_view($content);
 }
+
 public function OverallSummary(){
   $data['setting_detail']         = $this->Web_settings->retrieve_setting_editdata();
  $data['emp_name']=$this->db->select('*')->from('employee_history')->where('create_by', $this->session->userdata('user_id'))->get()->result_array();
@@ -135,6 +135,8 @@ public function state_summary(){
     $content = $this->parser->parse('hr/reports/state_summary', $data, true);
     $this->template->full_admin_html_view($content);
 }
+
+
 public function state_tax_search_summary() {
     $CI = get_instance();
     $CI->load->model('Web_settings');
