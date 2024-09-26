@@ -626,6 +626,12 @@ ProfarmaInvList.find("tbody").append(
 
   }
     tfoot.append(footerRow);
+     ProfarmaInvList.DataTable({
+        destroy: true, // Allow reinitialization
+        paging: false, // Disable pagination if not needed
+        searching: false, // Disable searching if not needed
+        info: false // Disable info text if not needed
+    });
 }
 
 
