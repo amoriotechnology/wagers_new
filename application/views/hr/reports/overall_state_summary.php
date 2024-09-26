@@ -524,15 +524,16 @@ $(document).ready(function () {
             data: formData,
        success: function (response) {
                 $('#tablesContainer').css('display','block');
-                populateTable(response);
-  federal_summary();
+                        populateTable(response);
+               
+           
                 if(taxtpe == 'federal'){
                     $('.federal').show();
                           $('.work_state').hide();
          $('.living_state').hide();
          $('#StateTaxTable_wrapper').css('display','none');
          $('#LivingStateTaxTable_wrapper').css('display','none');
-                    federal_summary();
+                    
                 }else if(taxtpe == 'working_state')
                 {
                  $('.work_state').show();
@@ -550,6 +551,7 @@ $(document).ready(function () {
                     $('.federal').show();
          $('.living_state').show();  
                 }
+                federal_summary();
             },
             error: function (xhr, status, error) {
                 console.error("Error:", xhr.responseText);
@@ -558,7 +560,7 @@ $(document).ready(function () {
     });
 });
 function federal_summary(){
-   
+
     
     var dataString = $("#fetch_tax").serialize();
     dataString[csrfName] = csrfHash; 
@@ -814,8 +816,12 @@ function populateTable(response) {
     generateTaxTable("state_tax", response.employer_contribution.state_tax, response.employee_contribution.state_tax, stateTaxTable);
     generateTaxTable("living_state_tax", response.employer_contribution.living_state_tax, response.employee_contribution.living_state_tax, livingStateTaxTable);
 
+   
+   var rowCount = $('#livingStateTaxTable tr').length;
     stateTaxTable.DataTable();
-    livingStateTaxTable.DataTable();
+   // if(rowCount >= 2){
+      livingStateTaxTable.DataTable();
+    //}
 }
 
 // Generate Xlsx Format

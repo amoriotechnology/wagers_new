@@ -459,7 +459,7 @@ public function federaIndexData()
             "timesheet_id"  => $item["timesheet_id"],
             "month"         => $item["month"],
             "cheque_date"   => $item["cheque_date"],
-            "f_ftax"        => number_format($item['f_ftax'], 2),
+            "f_ftax"        => number_format($item['f_tax'], 2),
         ];
         $data[] = $row;
         $i++;
@@ -779,7 +779,7 @@ public function overallSocialtaxIndexData()
             'table_id'      => $i,
             "first_name"    => $item["first_name"] .' '. $item["middle_name"].' '. $item["last_name"],
             "employee_tax"  => $item["employee_tax"],
-            "cheque_date"   => $item["cheque_date"],
+          
 
             'f_employee'    => number_format($mergedItem['f_ftax_sum'] ?? 0, 2),
             'f_employer'    => number_format($mergedItem['f_ftax_sum_er'] ?? 0, 2),
@@ -1098,14 +1098,13 @@ public function second_pay_slip() {
        $date_split=explode(' - ',$this->input->post('date_range'));
        $data_timesheet['start'] =  $date_split[0];
        $data_timesheet['end'] =  $date_split[1];
-       
-       if ($this->input->post('payment_method') == 'Cash') {
+        if ($this->input->post('payment_method') == 'Cash') {
             $data_timesheet['cheque_date'] =(!empty($this->input->post('cash_date',TRUE))?$this->input->post('cash_date',TRUE):'');
         } 
         else if ($this->input->post('payment_method') == 'Cheque') {
             $data_timesheet['cheque_date'] =(!empty($this->input->post('cheque_date',TRUE))?$this->input->post('cheque_date',TRUE):'');
         }
-       
+
  // Assuming $data_timesheet['start'] is set and contains a date in the format of 'd/m/Y'
  $start_date = $data_timesheet['start'];
 $month = intval(substr($start_date, 0, 2));
@@ -1137,8 +1136,7 @@ $data_timesheet['quarter'] = $quarter;
        $data_timesheet['admin_name'] = (!empty($this->input->post('administrator_person',TRUE))?$this->input->post('administrator_person',TRUE):'');
        $data_timesheet['payment_method'] =(!empty($this->input->post('payment_method',TRUE))?$this->input->post('payment_method',TRUE):'');
        $data_timesheet['cheque_no'] =(!empty($this->input->post('cheque_no',TRUE))?$this->input->post('cheque_no',TRUE):'');
-       // $data_timesheet['cheque_date'] =(!empty($this->input->post('cheque_date',TRUE))?$this->input->post('cheque_date',TRUE):'');
-         $data_timesheet['bank_name'] =(!empty($this->input->post('bank_name',TRUE))?$this->input->post('bank_name',TRUE):'');
+        $data_timesheet['bank_name'] =(!empty($this->input->post('bank_name',TRUE))?$this->input->post('bank_name',TRUE):'');
            $data_timesheet['payment_ref_no'] =(!empty($this->input->post('payment_refno',TRUE))?$this->input->post('payment_refno',TRUE):'');
      $timesheet_id  = $this->input->post('tsheet_id');
      $total_hours   = $this->input->post('total_net', TRUE);
@@ -1196,8 +1194,8 @@ $scValue = $scValue / 100;
    $final = $result;
  }
 
-
-
+  
+      
 
   if ($data['timesheet_data'][0]['payroll_type'] !=='Sales Partner' ||  $data['employee_data'][0]['choice'] == 'Yes'){
 
@@ -1461,14 +1459,11 @@ else {
               $ytd_sal = $ytd_salary_amt[0]['overalltotal'];
               $total_unemployment = $this->Hrm_model->total_unemployment($data['timesheet_data'][0]['templ_name']);
             
-        //      print_r($total_unemployment['unempltotal']);
-        //       echo $details;
-        //   die();
-            
-              if(($total_unemployment['unempltotal']) < 420 ){
+      
+              if((round($total_unemployment['unempltotal'])) < 420 ){
                 
                 if ($all_ytd <= $details) {
-                  //echo "3  ".$all_ytd;die();
+               
                 $uu = ($unemployment_employer / 100) * $final;
                 $uu = round($uu, 3);
                 $tax_amt_final = $final; 
@@ -1477,15 +1472,15 @@ else {
                   $bal = $details  - $ytd_sal ;
                   $uu = ($unemployment_employer / 100) * $bal;
                   $tax_amt_final = $bal;
-                   // echo "4 :".$uu ."-". $ytd_sal."-".$tax_amt_final;die();
+                
                   $uu = round($uu, 3);
                 }
                 else {
                   $uu = 0.00;
-                //  echo "1";die();
+            
               }
             }else{
-                 // echo "2";die();
+              
               $uu = 0.00;
             }
             $ar = $this->db->select('u_tax')->from('tax_history')->where('employee_id',$this->input->post('templ_name'))->get()->row()->u_tax;
@@ -3616,10 +3611,6 @@ $data['job_title']='Sales Partner';
 
 
 
-
-
-
-
  
 public function checkTimesheet() {
         // Get the selected date and employee ID from the AJAX request
@@ -4993,6 +4984,10 @@ if($payslip_design[0]['template']==3){
  
      
      
+
+
+
+
 
 
 
